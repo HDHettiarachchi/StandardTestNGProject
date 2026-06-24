@@ -1,23 +1,33 @@
-package listners;
+package listeners;
 
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.testng.ITestListener;
 import org.testng.ITestResult;
-import org.testng.internal.annotations.IListeners;
 
-public class TestListener implements IListeners {
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class TestListener implements ITestListener {
 
     @Override
     public void onTestStart(ITestResult result) {
-        System.out.println("\n▶ STARTING : " + result.getMethod().getMethodName());
+        System.out.println("\n + STARTING : " + result.getMethod().getMethodName());
     }
 
     @Override
     public void onTestSuccess(ITestResult result) {
-        System.out.println("✅ PASSED   : " + result.getMethod().getMethodName());
+        System.out.println(" + PASSED   : " + result.getMethod().getMethodName());
     }
 
     @Override
     public void onTestFailure(ITestResult result) {
-        System.out.println("❌ FAILED   : " + result.getMethod().getMethodName());
+        System.out.println(" + FAILED   : " + result.getMethod().getMethodName());
         System.out.println("   Reason   : " + result.getThrowable().getMessage());
 
         Object testInstance = result.getInstance();
@@ -30,7 +40,7 @@ public class TestListener implements IListeners {
 
     @Override
     public void onTestSkipped(ITestResult result) {
-        System.out.println("⏭ SKIPPED  : " + result.getMethod().getMethodName());
+        System.out.println(" + SKIPPED  : " + result.getMethod().getMethodName());
     }
 
     private WebDriver getDriverFromInstance(Object instance) {
@@ -69,11 +79,10 @@ public class TestListener implements IListeners {
             File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
             Files.copy(screenshot.toPath(), Paths.get(filePath));
 
-            System.out.println("   📸 Screenshot saved: " + filePath);
+            System.out.println(" + Screenshot saved: " + filePath);
 
         } catch (IOException e) {
-            System.out.println("   Screenshot failed: " + e.getMessage());
+            System.out.println(" + Screenshot failed: " + e.getMessage());
         }
     }
-
 }

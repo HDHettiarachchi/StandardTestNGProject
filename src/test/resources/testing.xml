@@ -19,19 +19,25 @@
         </classes>
     </test>
 
-    <test name="03 - Categories">
+    <test name="03 - Navigation">
+        <classes>
+            <class name="tests.NavBarTest"/>
+        </classes>
+    </test>
+
+    <test name="04 - Categories">
         <classes>
             <class name="tests.CategoryTest"/>
         </classes>
     </test>
 
-    <test name="04 - Product Details">
+    <test name="05 - Product Details">
         <classes>
             <class name="tests.ProductTest"/>
         </classes>
     </test>
 
-    <test name="05 - Cart and Checkout">
+    <test name="06 - Cart and Checkout">
         <classes>
             <class name="tests.CartTest"/>
         </classes>

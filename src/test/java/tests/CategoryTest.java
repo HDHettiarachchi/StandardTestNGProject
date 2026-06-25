@@ -53,7 +53,8 @@ public class CategoryTest extends BaseTest {
         System.out.println("══════════════════════════════════════\n");
 
         Assert.assertFalse(titles.isEmpty(),
-                "Category '" + category + "' returned no products.");
+                " + DEFECT: Category '\" + category + \"' loaded 0 products on the UI. \"\n" +
+                        "            + \"Either the category filter failed or AJAX did not complete in time.");
     }
 
     public static void selectCategory(HomePage homePage, String category) {

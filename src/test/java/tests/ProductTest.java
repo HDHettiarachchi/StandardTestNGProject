@@ -46,13 +46,17 @@ public class ProductTest extends BaseTest {
             System.out.println("     Desc  : " + desc);
 
             Assert.assertFalse(name.isEmpty(),
-                    "[" + category + "] Name empty for: " + title);
+                    " + DEFECT: Product name not displayed on UI for: '" + title + "'");
+
             Assert.assertFalse(price.isEmpty(),
-                    "[" + category + "] Price empty for: " + title);
-            Assert.assertTrue(productPage.isPriceWithCurrency(),
-                    "[" + category + "] Price missing '$' for: " + title);
+                    " + DEFECT: Product price not displayed on UI for: '" + title + "'");
+
+            Assert.assertTrue(price.contains("$"),
+                    " + DEFECT: Price is missing '$' currency symbol for: '"
+                            + title + "' | Displayed price: '" + price + "'");
+
             Assert.assertFalse(desc.isEmpty(),
-                    "[" + category + "] Description empty for: " + title);
+                    " + DEFECT: Product description not displayed on UI for: '" + title + "'");
         }
     }
 

@@ -5,10 +5,7 @@ import config.ConfigReader;
 import dataproviders.CartDataProvider;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import pages.CartPage;
-import pages.HomePage;
-import pages.LoginPage;
-import pages.ProductPage;
+import pages.*;
 
 public class CartTest extends BaseTest {
 
@@ -16,8 +13,7 @@ public class CartTest extends BaseTest {
 
     private void doLogin() {
         driver.get(ConfigReader.getBaseUrl());
-        HomePage homePage = new HomePage(driver);
-        homePage.clickLogin();
+        new HomePage(driver).clickLogin();
         new LoginPage(driver).login(
                 ConfigReader.getUsername(),
                 ConfigReader.getPassword()
@@ -38,10 +34,48 @@ public class CartTest extends BaseTest {
         new CartPage(driver).navigateToCart();
     }
 
-    // ── TC-06 Add to Cart Popup ───────────────────────────────────────────────
+    // ── TC-C01: Cart page loads, table headers present ────────────────────────
 
-    @Test(priority = 1, description = "TC-06: Add to cart triggers 'Product added.' alert")
-    public void testAddToCartPopup() {
+    @Test(priority = 1, description = "TC-C01: Cart page loads and table headers are present")
+    public void testCartPageLoadsWithHeaders() {
+        doLogin();
+        goToCart();
+
+        CartPage cartPage = new CartPage(driver);
+
+        System.out.println("\n[TC-C01] Checking cart table headers...");
+
+        cartPage.getTableHeaders().forEach(h ->
+                System.out.println("  Found header: '" + h.getText().trim() + "'")
+        );
+
+        Assert.assertTrue(cartPage.areTableHeadersPresent(),
+                " + DEFECT: Cart table headers missing.");
+
+        Assert.assertTrue(cartPage.containsHeader("Pic"),
+                " + DEFECT: Missing 'Pic' header.");
+        System.out.println(" + Pic header present");
+
+        Assert.assertTrue(cartPage.containsHeader("Title"),
+                " + DEFECT: Missing 'Title' header.");
+        System.out.println(" + Title header present");
+
+        Assert.assertTrue(cartPage.containsHeader("Price"),
+                " + DEFECT: Missing 'Price' header.");
+        System.out.println(" + Price header present");
+
+        Assert.assertTrue(cartPage.containsHeader("x"),
+                " + DEFECT: Missing 'x' (delete) header.");
+        System.out.println(" x (delete) header present");
+
+        Assert.assertFalse(cartPage.containsHeader("x"),
+                " + UI DEFECT: Delete column header is 'x' — should be 'Delete' or 'Remove'.");
+    }
+
+    // ── TC-C02: Add to cart triggers alert ───────────────────────────────────
+
+    @Test(priority = 2, description = "TC-C02: Add to cart button triggers 'Product added.' alert")
+    public void testAddToCartAlert() {
         doLogin();
 
         driver.get(ConfigReader.getBaseUrl());
@@ -51,48 +85,92 @@ public class CartTest extends BaseTest {
 
         String alertText = new ProductPage(driver).clickAddToCart();
 
-        System.out.println("[TC-06] Add to cart alert: " + alertText);
+        System.out.println("[TC-C02] Add to cart alert: " + alertText);
 
         Assert.assertTrue(alertText.contains("Product added"),
-                "Expected 'Product added.' alert. Got: " + alertText);
+                " + DEFECT: Expected 'Product added.' alert. Got: " + alertText);
+        System.out.println(" + 'Product added.' alert appeared");
     }
 
-    // ── TC-07 Cart Validation ─────────────────────────────────────────────────
+    // ── TC-C03: First row has image, title, price, delete ────────────────────
 
-    @Test(priority = 2, description = "TC-07: Cart has headers, image, price, and delete option")
-    public void testCartValidation() {
+    @Test(priority = 3, description = "TC-C03: Cart row displays image, title, price and delete option")
+    public void testCartRowContents() {
         doLogin();
         addFirstPhoneToCart();
         goToCart();
 
         CartPage cartPage = new CartPage(driver);
 
-        Assert.assertTrue(cartPage.areTableHeadersPresent(), "Cart table headers missing.");
-        Assert.assertTrue(cartPage.containsHeader("Pic"),    "Missing 'Pic' header.");
-        Assert.assertTrue(cartPage.containsHeader("Title"),  "Missing 'Title' header.");
-        Assert.assertTrue(cartPage.containsHeader("Price"),  "Missing 'Price' header.");
-        Assert.assertTrue(cartPage.containsHeader("x"),      "Missing 'x' header.");
+        Assert.assertTrue(cartPage.cartHasItems(),
+                " + DEFECT: Cart is empty after adding a product.");
 
-        System.out.println("[TC-07] All headers verified.");
+        System.out.println("\n[TC-C03] Checking cart row contents...");
 
-        Assert.assertTrue(cartPage.cartHasItems(),            "Cart is empty.");
-        Assert.assertTrue(cartPage.firstRowHasImage(),        "Cart row missing image.");
-        Assert.assertTrue(cartPage.firstRowPriceIsPresent(),  "Cart row price empty.");
-        Assert.assertTrue(cartPage.firstRowHasDeleteOption(), "Cart row missing delete.");
+        Assert.assertTrue(cartPage.firstRowHasImage(),
+                " + DEFECT: Cart row missing product image.");
+        System.out.println(" + Product image displayed");
 
-        System.out.println("[TC-07] Cart total: $" + cartPage.getTotalAmount());
+        Assert.assertTrue(cartPage.firstRowHasTitle(),
+                " + DEFECT: Cart row missing product title.");
+        System.out.println(" + Product title: " + cartPage.getFirstRowTitle());
+
+        Assert.assertTrue(cartPage.firstRowPriceIsPresent(),
+                " + DEFECT: Cart row missing product price.");
+        System.out.println(" + Product price: " + cartPage.getFirstRowPrice());
+
+        Assert.assertTrue(cartPage.firstRowHasDeleteOption(),
+                " + DEFECT: Cart row missing delete option.");
+        System.out.println(" + Delete option present");
+
+        System.out.println(" + Cart total: $" + cartPage.getTotalAmount());
     }
 
-    // ── TC-08 Place Order Popup ───────────────────────────────────────────────
+    // ── TC-C04: Delete button removes item from cart ──────────────────────────
 
-    @Test(
-            priority = 3,
-            description = "TC-08: Place Order button opens order form modal",
-            dataProvider = "orderData",
-            dataProviderClass = CartDataProvider.class
-    )
-    public void testPlaceOrderPopup(String name, String country, String city,
-                                    String card, String month, String year) {
+    @Test(priority = 4, description = "TC-C04: Delete button removes item from cart")
+    public void testDeleteItemFromCart() {
+        doLogin();
+        addFirstPhoneToCart();
+        goToCart();
+
+        CartPage cartPage = new CartPage(driver);
+
+        Assert.assertTrue(cartPage.cartHasItems(),
+                " + Cart is empty — cannot test delete.");
+
+        String itemTitle = cartPage.getFirstRowTitle();
+        System.out.println("[TC-C04] Deleting item: " + itemTitle);
+
+        cartPage.deleteFirstItem();
+
+        boolean isEmpty = cartPage.waitForCartToBeEmpty();
+
+        Assert.assertTrue(isEmpty,
+                " + DEFECT: Item '" + itemTitle + "' was not removed from cart.");
+        System.out.println(" + Item deleted — cart is now empty");
+    }
+
+    // ── TC-C05: Add item again for order flow ─────────────────────────────────
+
+    @Test(priority = 5, description = "TC-C05: Add item to cart again after deletion")
+    public void testAddItemAfterDeletion() {
+        doLogin();
+        addFirstPhoneToCart();
+        goToCart();
+
+        CartPage cartPage = new CartPage(driver);
+
+        Assert.assertTrue(cartPage.cartHasItems(),
+                " + DEFECT: Cart is empty after adding product again.");
+        System.out.println("[TC-C05] + Item added to cart successfully after previous deletion");
+        System.out.println(" + Item in cart: " + cartPage.getFirstRowTitle());
+    }
+
+    // ── TC-C06: Place Order modal opens with all fields ───────────────────────
+
+    @Test(priority = 6, description = "TC-C06: Place Order button opens modal with all required fields")
+    public void testPlaceOrderModalFields() {
         doLogin();
         addFirstPhoneToCart();
         goToCart();
@@ -101,18 +179,80 @@ public class CartTest extends BaseTest {
         cartPage.clickPlaceOrder();
 
         Assert.assertTrue(cartPage.isPlaceOrderModalVisible(),
-                "Place Order modal did not appear.");
+                " + DEFECT: Place Order modal did not open.");
 
-        cartPage.fillOrderDetails(name, country, city, card, month, year);
+        System.out.println("\n[TC-C06] Checking Place Order modal fields...");
 
-        System.out.println("[TC-08] Order form filled successfully.");
+        Assert.assertTrue(cartPage.isOrderNameFieldVisible(),
+                " + DEFECT: Name field missing in Place Order modal.");
+        System.out.println(" + Name field visible");
+
+        Assert.assertTrue(cartPage.isOrderCountryFieldVisible(),
+                " + DEFECT: Country field missing in Place Order modal.");
+        System.out.println(" + Country field visible");
+
+        Assert.assertTrue(cartPage.isOrderCityFieldVisible(),
+                " + DEFECT: City field missing in Place Order modal.");
+        System.out.println(" + City field visible");
+
+        Assert.assertTrue(cartPage.isOrderCardFieldVisible(),
+                " + DEFECT: Credit card field missing in Place Order modal.");
+        System.out.println(" + Credit card field visible");
+
+        Assert.assertTrue(cartPage.isOrderMonthFieldVisible(),
+                " + DEFECT: Month field missing in Place Order modal.");
+        System.out.println(" + Month field visible");
+
+        Assert.assertTrue(cartPage.isOrderYearFieldVisible(),
+                " + DEFECT: Year field missing in Place Order modal.");
+        System.out.println(" + Year field visible");
+
+        cartPage.closeOrderModal();
     }
 
-    // ── TC-09 Purchase Confirmation ───────────────────────────────────────────
+    // ── TC-C07: Purchase without filling fields ───────────────────────────────
+
+    @Test(priority = 7, description = "TC-C07: Purchase button without filling fields")
+    public void testPurchaseWithoutFillingFields() {
+        doLogin();
+        addFirstPhoneToCart();
+        goToCart();
+
+        CartPage cartPage = new CartPage(driver);
+        cartPage.clickPlaceOrder();
+
+        Assert.assertTrue(cartPage.isPlaceOrderModalVisible(),
+                " + Place Order modal did not open.");
+
+        // Click Purchase without filling any fields
+        cartPage.clickPurchaseWithoutWaiting();
+
+        // DemoBlaze shows a browser alert when fields are empty
+        try {
+            org.openqa.selenium.Alert alert = new org.openqa.selenium.support.ui.WebDriverWait(
+                    driver, java.time.Duration.ofSeconds(ConfigReader.getExplicitWait()))
+                    .until(org.openqa.selenium.support.ui.ExpectedConditions.alertIsPresent());
+
+            String alertMsg = alert.getText();
+            alert.accept();
+
+            System.out.println("[TC-C07] Alert on empty purchase: " + alertMsg);
+            System.out.println(" + Site prevented purchase with empty fields");
+
+        } catch (Exception e) {
+            // Some browsers may not show alert — check modal is still open
+            System.out.println("[TC-C07] No alert shown — checking if modal is still open...");
+            Assert.assertTrue(cartPage.isPlaceOrderModalVisible(),
+                    " + DEFECT: No validation shown for empty purchase fields.");
+            System.out.println(" + Modal still open — form not submitted");
+        }
+    }
+
+    // ── TC-C08: Purchase confirmation ─────────────────────────────────────────
 
     @Test(
-            priority = 4,
-            description = "TC-09: Purchase popup shows order details and Thank You message",
+            priority = 8,
+            description = "TC-C08: Purchase confirmation and order details",
             dataProvider = "orderData",
             dataProviderClass = CartDataProvider.class
     )
@@ -124,24 +264,33 @@ public class CartTest extends BaseTest {
 
         CartPage cartPage = new CartPage(driver);
         cartPage.clickPlaceOrder();
+
+        Assert.assertTrue(cartPage.isPlaceOrderModalVisible(),
+                " + Place Order modal did not appear.");
+
         cartPage.fillOrderDetails(name, country, city, card, month, year);
         cartPage.clickPurchase();
 
         Assert.assertTrue(cartPage.isConfirmationModalVisible(),
-                "Purchase confirmation modal did not appear.");
+                " + DEFECT: Purchase confirmation modal did not appear.");
 
         String confirmText = cartPage.getConfirmationText();
-        System.out.println("[TC-09] Confirmation text:\n" + confirmText);
+
+        System.out.println("\n[TC-C08] Confirmation text:\n" + confirmText);
 
         Assert.assertTrue(confirmText.contains("Amount"),
-                "Missing 'Amount' in confirmation.");
+                " + DEFECT: Missing 'Amount' in confirmation.");
+        System.out.println(" + Amount present");
+
         Assert.assertTrue(confirmText.contains("Card Number"),
-                "Missing 'Card Number' in confirmation.");
+                " + DEFECT: Missing 'Card Number' in confirmation.");
+        System.out.println(" + Card Number present");
+
         Assert.assertTrue(confirmText.contains("Name"),
-                "Missing 'Name' in confirmation.");
+                " + DEFECT: Missing 'Name' in confirmation.");
+        System.out.println(" + Name present");
 
         cartPage.clickConfirmOk();
-        System.out.println("[TC-09] Confirmation dismissed with OK.");
+        System.out.println(" + Confirmation dismissed with OK");
     }
-
 }

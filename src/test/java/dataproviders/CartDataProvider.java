@@ -8,7 +8,7 @@ public class CartDataProvider {
     @DataProvider(name = "orderData")
     public static Object[][] orderData() {
         return new Object[][] {
-                { "QA Tester", "Sri Lanka", "Tangalle", "4111111111111111", "6", "2026" }
+                { "H. D.", "Sri Lanka", "Matara", "0711111111", "6", "2026" }
         };
     }
 

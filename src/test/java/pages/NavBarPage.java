@@ -11,8 +11,8 @@ public class NavBarPage {
     private final WaitHelper wait;
 
     // Navbar links
-    private final By navbarBrand    = By.className("navbar-brand");
-    private final By homeLink       = By.xpath("//a[normalize-space()='Home']");
+    private final By navbarBrand    = By.cssSelector("#nava > img");
+    private final By homeLink       = By.cssSelector("#navbarExample > ul > li.nav-item.active > a");
     private final By contactLink    = By.xpath("//a[normalize-space()='Contact']");
     private final By aboutUsLink    = By.xpath("//a[normalize-space()='About us']");
     private final By cartLink       = By.id("cartur");
@@ -53,6 +53,10 @@ public class NavBarPage {
 
     public boolean isAboutUsLinkVisible() {
         return isVisible(aboutUsLink);
+    }
+
+    public boolean isAboutUsVideoVisible() {
+        return isVisible(aboutUsVideo);
     }
 
     public boolean isCartLinkVisible() {

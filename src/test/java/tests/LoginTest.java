@@ -55,4 +55,35 @@ public class LoginTest extends BaseTest {
                 "Navbar brand mismatch. Got: " + navbarBrand);
     }
 
+    @Test(
+            priority = 3,
+            description = "TC-02-N: Negative login scenarios",
+            dataProvider = "negativeLoginData",
+            dataProviderClass = LoginDataProvider.class
+    )
+    public void testLoginNegative(String username, String password,
+                                  String expectedAlert, String scenario) {
+        driver.get(ConfigReader.getBaseUrl());
+
+        new HomePage(driver).clickLogin();
+
+        LoginPage loginPage = new LoginPage(driver);
+        String alertMsg = loginPage.loginAndGetAlert(username, password);
+
+        System.out.println("\n──────────────────────────────────────");
+        System.out.println("  Scenario : " + scenario);
+        System.out.println("  Username : '" + username + "'");
+        System.out.println("  Password : '" + password + "'");
+        System.out.println("  Alert    : " + alertMsg);
+        System.out.println("──────────────────────────────────────");
+
+        Assert.assertTrue(
+                alertMsg.contains(expectedAlert),
+                scenario + " | Expected alert to contain: '"
+                        + expectedAlert + "' but got: '" + alertMsg + "'"
+        );
+
+        System.out.println(" + Correctly rejected: " + alertMsg);
+    }
+
 }

@@ -13,15 +13,16 @@ import pages.NavBarPage;
 import java.time.Duration;
 
 public class NavBarTest extends BaseTest {
+    // ── TC-03: Navigation
 
-    // ── TC-10: All navbar links are present and visible ───────────────────────
+    // ── TC-03-1: All navbar links are present and visible ───────────────────────
 
-    @Test(priority = 1, description = "TC-10: All navbar links are visible on home page")
+    @Test(priority = 1, description = "TC-03-1: All navbar links are visible on home page")
     public void testNavbarLinksVisible() {
         driver.get(ConfigReader.getBaseUrl());
         NavBarPage navBar = new NavBarPage(driver);
 
-        System.out.println("\n[TC-10] Checking navbar links...");
+        System.out.println("\n[TC-03-1] Checking navbar links...");
 
         Assert.assertTrue(navBar.isHomeLinkVisible(),
                 " + DEFECT: 'Home' link not visible in navbar.");
@@ -48,9 +49,9 @@ public class NavBarTest extends BaseTest {
         System.out.println(" + Sign up link visible");
     }
 
-    // ── TC-11: Navbar brand/logo click navigates to home ─────────────────────
+    // ── TC-04-2: Navbar brand/logo click navigates to home ─────────────────────
 
-    @Test(priority = 2, description = "TC-11: Navbar brand click navigates back to home page")
+    @Test(priority = 2, description = "TC-03-2: Navbar brand click navigates back to home page")
     public void testNavbarBrandNavigatesToHome() {
         driver.get(ConfigReader.getBaseUrl());
         NavBarPage navBar = new NavBarPage(driver);
@@ -63,7 +64,7 @@ public class NavBarTest extends BaseTest {
 
         String currentUrl = navBar.getCurrentUrl();
 
-        System.out.println("[TC-11] Current URL after brand click: " + currentUrl);
+        System.out.println("[TC-03-2] Current URL after brand click: " + currentUrl);
 
         Assert.assertTrue(
                 currentUrl.contains("demoblaze.com"),
@@ -72,7 +73,7 @@ public class NavBarTest extends BaseTest {
         System.out.println(" + Navbar brand navigates to home");
     }
 
-    @Test(priority = 3, description = "TC-12: Home link in navbar navigates to home page")
+    @Test(priority = 3, description = "TC-03-3: Home link in navbar navigates to home page")
     public void testHomeLinkNavigation() {
         driver.get(ConfigReader.getBaseUrl());
         NavBarPage navBar = new NavBarPage(driver);
@@ -85,7 +86,7 @@ public class NavBarTest extends BaseTest {
 
         String currentUrl = navBar.getCurrentUrl();
 
-        System.out.println("[TC-12] URL after Home click: " + currentUrl);
+        System.out.println("[TC-03-3] URL after Home click: " + currentUrl);
 
         Assert.assertTrue(
                 currentUrl.contains("demoblaze.com"),
@@ -94,9 +95,9 @@ public class NavBarTest extends BaseTest {
         System.out.println(" + Home link navigates correctly");
     }
 
-    // ── TC-13: Cart link navigates to cart page ───────────────────────────────
+    // ── TC-03-4: Cart link navigates to cart page ───────────────────────────────
 
-    @Test(priority = 4, description = "TC-13: Cart link in navbar navigates to cart page")
+    @Test(priority = 4, description = "TC-03-4: Cart link in navbar navigates to cart page")
     public void testCartLinkNavigation() {
         driver.get(ConfigReader.getBaseUrl());
         NavBarPage navBar = new NavBarPage(driver);
@@ -105,7 +106,7 @@ public class NavBarTest extends BaseTest {
 
         String currentUrl = navBar.getCurrentUrl();
 
-        System.out.println("[TC-13] URL after Cart click: " + currentUrl);
+        System.out.println("[TC-03-4] URL after Cart click: " + currentUrl);
 
         Assert.assertTrue(
                 currentUrl.contains("cart"),
@@ -114,9 +115,9 @@ public class NavBarTest extends BaseTest {
         System.out.println(" + Cart link navigates to cart page");
     }
 
-    // ── TC-14: Contact modal opens ────────────────────────────────────────────
+    // ── TC-03-5: Contact modal opens ────────────────────────────────────────────
 
-    @Test(priority = 5, description = "TC-14: Contact link opens the contact modal")
+    @Test(priority = 5, description = "TC-03-5: Contact link opens the contact modal")
     public void testContactModalOpens() {
         driver.get(ConfigReader.getBaseUrl());
         NavBarPage navBar = new NavBarPage(driver);
@@ -125,10 +126,35 @@ public class NavBarTest extends BaseTest {
 
         Assert.assertTrue(navBar.isContactModalVisible(),
                 " + DEFECT: Contact modal did not open.");
-        System.out.println("[TC-14] + Contact modal opened");
+        System.out.println("[TC-03-5] + Contact modal opened");
     }
 
-    @Test(priority = 6, description = "TC-15: Contact form send message triggers alert")
+    @Test(priority = 6, description = "TC-03-6: About Us link opens the About Us modal")
+    public void testAboutUsModalOpens() {
+        driver.get(ConfigReader.getBaseUrl());
+        NavBarPage navBar = new NavBarPage(driver);
+
+        navBar.clickAboutUs();
+
+        Assert.assertTrue(navBar.isAboutUsLinkVisible(),
+                " + DEFECT: About Us modal did not open.");
+        System.out.println("[TC-03-6] + About Us modal opened");
+    }
+
+    @Test(priority = 7, description = "TC-03-7: About Us modal contains a video")
+    public void testAboutUsModalHasVideo() {
+        driver.get(ConfigReader.getBaseUrl());
+        NavBarPage navBar = new NavBarPage(driver);
+
+        navBar.clickAboutUs();
+
+        Assert.assertTrue(navBar.isAboutUsVideoVisible(),
+                " + DEFECT: About Us modal does not contain a video.");
+        System.out.println("[TC-03-7] + About Us video is present");
+
+    }
+
+    @Test(priority = 8, description = "TC-03-8: Contact form send message triggers alert")
     public void testContactFormSendMessage() {
         driver.get(ConfigReader.getBaseUrl());
         NavBarPage navBar = new NavBarPage(driver);
@@ -137,8 +163,8 @@ public class NavBarTest extends BaseTest {
 
         navBar.fillContactForm(
                 "test@qa.com",
-                "QA Tester",
-                "This is a test message from the automation suite."
+                "HasikalaSQA",
+                "This is a test message from Hasikala."
         );
 
         navBar.clickSendMessage();
@@ -150,16 +176,16 @@ public class NavBarTest extends BaseTest {
         String alertText = alert.getText();
         alert.accept();
 
-        System.out.println("[TC-15] Send message alert: " + alertText);
+        System.out.println("[TC-03-8] Send message alert: " + alertText);
 
         Assert.assertNotNull(alertText,
                 " + DEFECT: No alert appeared after sending contact message.");
         System.out.println(" + Send message alert appeared: " + alertText);
     }
 
-    // ── TC-19: Logout works ───────────────────────────────────────────────────
+    // ── TC-03-9: Logout works ───────────────────────────────────────────────────
 
-    @Test(priority = 7, description = "TC-16: Logout hides welcome label and shows login/signup")
+    @Test(priority = 9, description = "TC-04-9: Logout hides welcome label and shows login/signup")
     public void testLogout() {
         driver.get(ConfigReader.getBaseUrl());
         NavBarPage navBar = new NavBarPage(driver);
@@ -174,7 +200,7 @@ public class NavBarTest extends BaseTest {
         // Verify logged in
         Assert.assertTrue(navBar.isWelcomeLabelVisible(),
                 " + Could not log in — welcome label not shown.");
-        System.out.println("[TC-16] Logged in: " + navBar.getWelcomeText());
+        System.out.println("[TC-03-9] Logged in: " + navBar.getWelcomeText());
 
         // Logout should be visible
         Assert.assertTrue(navBar.isLogoutLinkVisible(),
@@ -185,7 +211,7 @@ public class NavBarTest extends BaseTest {
         navBar.clickLogout();
         navBar.waitForLogout();
 
-        System.out.println("[TC-16] Logged out.");
+        System.out.println("[TC-03-9] Logged out.");
 
         // Welcome label should be gone
         Assert.assertTrue(navBar.isWelcomeLabelHidden(),

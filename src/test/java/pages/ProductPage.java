@@ -3,12 +3,18 @@ package pages;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import config.ConfigReader;
 import utils.WaitHelper;
+
+import java.time.Duration;
 
 public class ProductPage {
 
     private final WebDriver driver;
     private final WaitHelper wait;
+    private final WebDriverWait explicitWait;
 
     private final By productName        = By.cssSelector(".name");
     private final By productPrice       = By.cssSelector(".price-container");
@@ -16,40 +22,40 @@ public class ProductPage {
     private final By addToCartButton    = By.xpath("//a[normalize-space()='Add to cart']");
 
     public ProductPage(WebDriver driver) {
-        this.driver = driver;
-        this.wait   = new WaitHelper(driver);
+        this.driver       = driver;
+        this.wait         = new WaitHelper(driver);
+        this.explicitWait = new WebDriverWait(driver,
+                Duration.ofSeconds(ConfigReader.getExplicitWait()));
+    }
+
+    // Wait for the full product page to load before doing anything
+    public void waitForPageToLoad() {
+        explicitWait.until(ExpectedConditions.visibilityOfElementLocated(productName));
+        explicitWait.until(ExpectedConditions.visibilityOfElementLocated(productPrice));
+        explicitWait.until(ExpectedConditions.visibilityOfElementLocated(productDescription));
     }
 
     public String getProductName() {
-        return wait.waitForVisible(productName).getText().trim();
+        explicitWait.until(ExpectedConditions.visibilityOfElementLocated(productName));
+        return driver.findElement(productName).getText().trim();
     }
 
     public String getProductPrice() {
-        return wait.waitForVisible(productPrice).getText().trim();
+        explicitWait.until(ExpectedConditions.visibilityOfElementLocated(productPrice));
+        return driver.findElement(productPrice).getText().trim();
     }
 
     public String getProductDescription() {
-        return wait.waitForVisible(productDescription).getText().trim();
-    }
-
-    public boolean isPriceWithCurrency() {
-        return getProductPrice().contains("$");
-    }
-
-    public boolean hasValidName() {
-        return !getProductName().isEmpty();
-    }
-
-    public boolean hasValidDescription() {
-        return !getProductDescription().isEmpty();
+        explicitWait.until(ExpectedConditions.visibilityOfElementLocated(productDescription));
+        return driver.findElement(productDescription).getText().trim();
     }
 
     public String clickAddToCart() {
-        wait.waitForClickable(addToCartButton).click();
+        explicitWait.until(ExpectedConditions.elementToBeClickable(addToCartButton));
+        driver.findElement(addToCartButton).click();
         Alert alert = wait.waitForAlert();
         String message = alert.getText();
         alert.accept();
         return message;
     }
-
 }

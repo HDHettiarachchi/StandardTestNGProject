@@ -34,16 +34,16 @@ public class CartTest extends BaseTest {
         new CartPage(driver).navigateToCart();
     }
 
-    // ── TC-C01: Cart page loads, table headers present ────────────────────────
+    // ── TC-06-1: Cart page loads, table headers present ────────────────────────
 
-    @Test(priority = 1, description = "TC-C01: Cart page loads and table headers are present")
+    @Test(priority = 1, description = "TC-06-1: Cart page loads and table headers are present")
     public void testCartPageLoadsWithHeaders() {
         doLogin();
         goToCart();
 
         CartPage cartPage = new CartPage(driver);
 
-        System.out.println("\n[TC-C01] Checking cart table headers...");
+        System.out.println("\n[TC-06-1] Checking cart table headers...");
 
         cartPage.getTableHeaders().forEach(h ->
                 System.out.println("  Found header: '" + h.getText().trim() + "'")
@@ -72,10 +72,52 @@ public class CartTest extends BaseTest {
                 " + UI DEFECT: Delete column header is 'x' — should be 'Delete' or 'Remove'.");
     }
 
-    // ── TC-C02: Add to cart triggers alert ───────────────────────────────────
+    // ── TC-06-2: Place order with empty cart ───────────────────────────────────
 
-    @Test(priority = 2, description = "TC-C02: Add to cart button triggers 'Product added.' alert")
+    @Test(
+            priority = 2,
+            description = "TC-06-2: Place Order with empty cart — site should prevent this",
+            dataProvider = "orderData",
+            dataProviderClass = CartDataProvider.class
+    )
+    public void testPlaceOrderWithEmptyCart(String name, String country, String city,
+                                            String card, String month, String year) {
+
+        goToCart();
+
+        CartPage cartPage = new CartPage(driver);
+
+        // Click Place Order on empty cart
+        cartPage.clickPlaceOrder();
+
+        Assert.assertTrue(cartPage.isPlaceOrderModalVisible(),
+                "Place Order modal did not open.");
+
+        cartPage.fillOrderDetails(name, country, city, card, month, year);
+        System.out.println("[TC-06-2] Order details filled on empty cart.");
+
+        cartPage.clickPurchase();
+
+        boolean confirmationShown = cartPage.isConfirmationModalVisible();
+
+        if (confirmationShown) {
+            String confirmText = cartPage.getConfirmationText();
+            System.out.println("[TC-06-2] Confirmation text: " + confirmText);
+            cartPage.clickConfirmOk();
+        }
+
+        // This should FAIL — site should not allow purchase with empty cart
+        Assert.assertFalse(confirmationShown,
+                " + DEFECT: Site allowed purchase with an empty cart. "
+                        + "Order should be rejected when no items are present."
+        );
+    }
+
+    // ── TC-06-3: Add to cart triggers alert ───────────────────────────────────
+
+    @Test(priority = 3, description = "TC-06-3: Add to cart button triggers 'Product added.' alert")
     public void testAddToCartAlert() {
+
         doLogin();
 
         driver.get(ConfigReader.getBaseUrl());
@@ -85,19 +127,18 @@ public class CartTest extends BaseTest {
 
         String alertText = new ProductPage(driver).clickAddToCart();
 
-        System.out.println("[TC-C02] Add to cart alert: " + alertText);
+        System.out.println("[TC-06-3] Add to cart alert: " + alertText);
 
         Assert.assertTrue(alertText.contains("Product added"),
                 " + DEFECT: Expected 'Product added.' alert. Got: " + alertText);
         System.out.println(" + 'Product added.' alert appeared");
     }
 
-    // ── TC-C03: First row has image, title, price, delete ────────────────────
+    // ── TC-06-4: First row has image, title, price, delete ────────────────────
 
-    @Test(priority = 3, description = "TC-C03: Cart row displays image, title, price and delete option")
+    @Test(priority = 4, description = "TC-06-4: Cart row displays image, title, price and delete option")
     public void testCartRowContents() {
         doLogin();
-        addFirstPhoneToCart();
         goToCart();
 
         CartPage cartPage = new CartPage(driver);
@@ -105,7 +146,7 @@ public class CartTest extends BaseTest {
         Assert.assertTrue(cartPage.cartHasItems(),
                 " + DEFECT: Cart is empty after adding a product.");
 
-        System.out.println("\n[TC-C03] Checking cart row contents...");
+        System.out.println("\n[TC-06-4] Checking cart row contents...");
 
         Assert.assertTrue(cartPage.firstRowHasImage(),
                 " + DEFECT: Cart row missing product image.");
@@ -126,12 +167,11 @@ public class CartTest extends BaseTest {
         System.out.println(" + Cart total: $" + cartPage.getTotalAmount());
     }
 
-    // ── TC-C04: Delete button removes item from cart ──────────────────────────
+    // ── TC-06-5: Delete button removes item from cart ──────────────────────────
 
-    @Test(priority = 4, description = "TC-C04: Delete button removes item from cart")
+    @Test(priority = 5, description = "TC-06-5: Delete button removes item from cart")
     public void testDeleteItemFromCart() {
         doLogin();
-        addFirstPhoneToCart();
         goToCart();
 
         CartPage cartPage = new CartPage(driver);
@@ -140,7 +180,7 @@ public class CartTest extends BaseTest {
                 " + Cart is empty — cannot test delete.");
 
         String itemTitle = cartPage.getFirstRowTitle();
-        System.out.println("[TC-C04] Deleting item: " + itemTitle);
+        System.out.println("[TC-06-5] Deleting item: " + itemTitle);
 
         cartPage.deleteFirstItem();
 
@@ -151,9 +191,9 @@ public class CartTest extends BaseTest {
         System.out.println(" + Item deleted — cart is now empty");
     }
 
-    // ── TC-C05: Add item again for order flow ─────────────────────────────────
+    // ── TC-06-6: Add item again for order flow ─────────────────────────────────
 
-    @Test(priority = 5, description = "TC-C05: Add item to cart again after deletion")
+    @Test(priority = 6, description = "TC-06-6: Add item to cart again after deletion")
     public void testAddItemAfterDeletion() {
         doLogin();
         addFirstPhoneToCart();
@@ -163,13 +203,13 @@ public class CartTest extends BaseTest {
 
         Assert.assertTrue(cartPage.cartHasItems(),
                 " + DEFECT: Cart is empty after adding product again.");
-        System.out.println("[TC-C05] + Item added to cart successfully after previous deletion");
+        System.out.println("[TC-06-6] + Item added to cart successfully after previous deletion");
         System.out.println(" + Item in cart: " + cartPage.getFirstRowTitle());
     }
 
     // ── TC-C06: Place Order modal opens with all fields ───────────────────────
 
-    @Test(priority = 6, description = "TC-C06: Place Order button opens modal with all required fields")
+    @Test(priority = 7, description = "TC-06-7: Place Order button opens modal with required fields")
     public void testPlaceOrderModalFields() {
         doLogin();
         addFirstPhoneToCart();
@@ -181,7 +221,7 @@ public class CartTest extends BaseTest {
         Assert.assertTrue(cartPage.isPlaceOrderModalVisible(),
                 " + DEFECT: Place Order modal did not open.");
 
-        System.out.println("\n[TC-C06] Checking Place Order modal fields...");
+        System.out.println("\n[TC-06-7] Checking Place Order modal fields...");
 
         Assert.assertTrue(cartPage.isOrderNameFieldVisible(),
                 " + DEFECT: Name field missing in Place Order modal.");
@@ -210,9 +250,9 @@ public class CartTest extends BaseTest {
         cartPage.closeOrderModal();
     }
 
-    // ── TC-C07: Purchase without filling fields ───────────────────────────────
+    // ── TC-06-8: Purchase without filling fields ───────────────────────────────
 
-    @Test(priority = 7, description = "TC-C07: Purchase button without filling fields")
+    @Test(priority = 8, description = "TC-06-8: Purchase button without filling fields")
     public void testPurchaseWithoutFillingFields() {
         doLogin();
         addFirstPhoneToCart();
@@ -236,28 +276,29 @@ public class CartTest extends BaseTest {
             String alertMsg = alert.getText();
             alert.accept();
 
-            System.out.println("[TC-C07] Alert on empty purchase: " + alertMsg);
+            System.out.println("[TC-06-8] Alert on empty purchase: " + alertMsg);
             System.out.println(" + Site prevented purchase with empty fields");
 
         } catch (Exception e) {
             // Some browsers may not show alert — check modal is still open
-            System.out.println("[TC-C07] No alert shown — checking if modal is still open...");
+            System.out.println("[TC-06-8] No alert shown — checking if modal is still open...");
             Assert.assertTrue(cartPage.isPlaceOrderModalVisible(),
                     " + DEFECT: No validation shown for empty purchase fields.");
             System.out.println(" + Modal still open — form not submitted");
         }
     }
 
-    // ── TC-C08: Purchase confirmation ─────────────────────────────────────────
+    // ── TC-06-9: Purchase confirmation ─────────────────────────────────────────
 
     @Test(
-            priority = 8,
-            description = "TC-C08: Purchase confirmation and order details",
+            priority = 9,
+            description = "TC-06-9: Purchase confirmation and order details",
             dataProvider = "orderData",
             dataProviderClass = CartDataProvider.class
     )
     public void testPurchaseConfirmation(String name, String country, String city,
                                          String card, String month, String year) {
+
         doLogin();
         addFirstPhoneToCart();
         goToCart();
@@ -276,7 +317,7 @@ public class CartTest extends BaseTest {
 
         String confirmText = cartPage.getConfirmationText();
 
-        System.out.println("\n[TC-C08] Confirmation text:\n" + confirmText);
+        System.out.println("\n[TC-06-9] Confirmation text:\n" + confirmText);
 
         Assert.assertTrue(confirmText.contains("Amount"),
                 " + DEFECT: Missing 'Amount' in confirmation.");

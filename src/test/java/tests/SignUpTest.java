@@ -68,7 +68,7 @@ public class SignUpTest extends BaseTest {
 
     @Test(
             priority = 3,
-            description = "TC-01-NV: Sign up inputs with no server validation — documenting site behaviour",
+            description = "TC-01-NV: Sign up inputs with no server validation",
             dataProvider = "noValidationSignUpData",
             dataProviderClass = SignUpDataProvider.class
     )
@@ -86,18 +86,21 @@ public class SignUpTest extends BaseTest {
         System.out.println("  Response  : " + alertMsg);
 
         if (isBug) {
-            if (alertMsg.contains("Sign up successful")) {
-                System.out.println("  ⚠ BUG     : Site accepted invalid input.");
-                System.out.println("    → This should be rejected by the server.");
-            } else {
-                System.out.println("  ✔ INFO    : Site rejected with: " + alertMsg);
-            }
+            boolean siteAcceptedInvalidInput =
+                    alertMsg.contains("Sign up successful") ||
+                            alertMsg.contains("This user already exist.");
+
+            Assert.assertFalse(
+                    siteAcceptedInvalidInput,
+                    " + DEFECT: Site accepted invalid input" + scenario
+                            + " | Input: '" + username + "'"
+                            + " | Response: '" + alertMsg + "'"
+                            + " | Site should reject this input without allowing registration."
+            );
         }
 
         System.out.println("══════════════════════════════════════\n");
 
-        // We only assert a response came back — not what it says
-        // These are documentation tests, not pass/fail validations
         Assert.assertNotNull(alertMsg,
                 scenario + " | No response received from site.");
     }

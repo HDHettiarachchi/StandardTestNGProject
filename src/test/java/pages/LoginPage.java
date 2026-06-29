@@ -1,5 +1,6 @@
 package pages;
 
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -47,6 +48,17 @@ public class LoginPage {
         enterPassword(password);
         clickLogin();
         return wait.waitForNonEmptyText(welcomeLabel).getText().trim();
+    }
+
+    public String loginAndGetAlert(String username, String password) {
+        waitForModal();
+        enterUsername(username);
+        enterPassword(password);
+        clickLogin();
+        Alert alert = wait.waitForAlert();
+        String message = alert.getText();
+        alert.accept();
+        return message;
     }
 
 }
